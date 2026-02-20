@@ -154,14 +154,9 @@ const http = require("http");
 // DIRECTORY SETUP - Ensure required directories exist
 // ═══════════════════════════════════════════════════════════════════════════
 
-if (!fs.existsSync("./uploads")) {
-  fs.mkdirSync("./uploads");
-  console.log("✅ Created uploads/ directory");
-}
-
-if (!fs.existsSync("./data")) {
-  fs.mkdirSync("./data");
-  console.log("✅ Created data/ directory");
+if (!fs.existsSync("/tmp/uploads")) {
+  fs.mkdirSync("/tmp/uploads", { recursive: true });
+  console.log("✅ Created /tmp/uploads/ directory");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -169,7 +164,7 @@ if (!fs.existsSync("./data")) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const upload = multer({
-  dest: "uploads/",
+  dest: "/tmp/uploads/",
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     console.log(
@@ -4424,33 +4419,32 @@ async function startServer() {
     // Initialize database
     await initializeDatabase();
 
-    // Start Express server
-    app.listen(PORT, () => {
-      console.log("");
-      console.log(
-        "═══════════════════════════════════════════════════════════════",
-      );
-      console.log("✅ SERVER RUNNING SUCCESSFULLY");
-      console.log(
-        "═══════════════════════════════════════════════════════════════",
-      );
-      console.log(`🌐 URL: http://localhost:${PORT}`);
-      console.log(`📊 Environment: ${process.env.NODE_ENV || "production"}`);
-      console.log(`🔐 Admin Login: admin@validiant.com / Admin@123`);
-      console.log("");
-      console.log("✅ Keep-alive system starting...");
+    console.log("");
+    console.log(
+      "═══════════════════════════════════════════════════════════════",
+    );
+    console.log("✅ SERVER RUNNING SUCCESSFULLY");
+    console.log(
+      "═══════════════════════════════════════════════════════════════",
+    );
+    console.log(`🌐 URL: http://localhost:${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || "production"}`);
+    console.log(`🔐 Admin Login: admin@validiant.com / Admin@123`);
+    console.log("");
+    console.log("✅ Keep-alive system starting...");
+    setInterval(keepAlive, 180000);
+    setTimeout(keepAlive, 5000);
+    console.log("✅ All systems operational");
+    console.log(
+      "═══════════════════════════════════════════════════════════════",
+    );
 
-      // Start keep-alive pings every 3 minutes
-      setInterval(keepAlive, 180000);
-
-      // Initial ping
-      setTimeout(keepAlive, 5000);
-
-      console.log("✅ All systems operational");
-      console.log(
-        "═══════════════════════════════════════════════════════════════",
-      );
-    });
+    // Only bind to a port when running directly (not on Vercel)
+    if (require.main === module) {
+      app.listen(PORT, () => {
+        console.log(`✅ Server listening on port ${PORT}`);
+      });
+    }
   } catch (error) {
     console.error(
       "═══════════════════════════════════════════════════════════════",
@@ -4466,3 +4460,6 @@ async function startServer() {
 
 // Start the server
 startServer();
+
+// ← TOP-LEVEL export — Vercel reads this synchronously on module load
+module.exports = app;
